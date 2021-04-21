@@ -22,13 +22,13 @@ def down_sample(im, stride=4):
     mask[:, mask_x] = 1
     mask[mask_y, :] = 1
         
-    return (im * mask).astype(np.float32)
+    return (im * mask).type(torch.float32)
 
 
 def load_images(path='data/healthy_small'):
     """Load all jpg images in a folder."""
     
-    glob_path = path + '\*.jpg'
+    glob_path = path + '/*.jpg'
     ims = []
     
     for i, file in enumerate(glob.glob(glob_path)):

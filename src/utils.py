@@ -23,4 +23,4 @@ def down_sample(im, stride=4):
     # Information kept.
     # print(np.mean(mask))
     
-    return im * mask
+    return (im * mask).astype(np.float32)

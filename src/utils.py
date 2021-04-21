@@ -1,5 +1,7 @@
-import numpy as np
+import glob
 
+import numpy as np
+import skimage.io
 import torch
 import torch.nn as nn
 
@@ -19,8 +21,21 @@ def down_sample(im, stride=4):
     mask_y = np.arange(0, m, stride)
     mask[:, mask_x] = 1
     mask[mask_y, :] = 1
-    
-    # Information kept.
-    # print(np.mean(mask))
-    
+        
     return (im * mask).astype(np.float32)
+
+
+def load_images(path='data/healthy_small'):
+    """Load all jpg images in a folder."""
+    
+    glob_path = path + '\*.jpg'
+    ims = []
+    
+    for i, file in enumerate(glob.glob(glob_path)):
+        im = skimage.io.imread(file)
+        im = im.astype(np.float32) / 255
+        ims.append(im)
+        
+    ims = np.array(ims).astype(np.float32)
+    
+    return ims

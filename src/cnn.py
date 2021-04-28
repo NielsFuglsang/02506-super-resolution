@@ -5,11 +5,11 @@ import torch.nn.functional as F
 from .utils import orthogonal_init
 
 class MyUNet(nn.Module):
-    def __init__(self):
-        super().__init__(p_conv=0.2)
+    def __init__(self, p_conv=0):
+        super().__init__()
 
         # dropouts
-        self.dropout_conv = nn.Dropout(p=p_conv)
+        self.dropout = nn.Dropout(p=p_conv)
         
         # encoder (downsampling)
         self.enc_conv0 = nn.Conv2d(3, 64, 3, padding=1)
@@ -36,19 +36,19 @@ class MyUNet(nn.Module):
         
         self.apply(orthogonal_init)
         
-    def forward(self, x, dropout_conv=False, dropout_dense=False):
+    def forward(self, x):
         # encoder
         e0 = self.pool0(F.relu(self.enc_conv0(x)))
-        e0 = self.dropout_conv(e0) if dropout_conv
+        e0 = self.dropout(e0)
         
         e1 = self.pool1(F.relu(self.enc_conv1(e0)))
-        e1 = self.dropout_conv(e1) if dropout_conv
+        e1 = self.dropout(e1)
         
         e2 = self.pool2(F.relu(self.enc_conv2(e1)))
-        e2 = self.dropout_conv(e2) if dropout_conv
+        e2 = self.dropout(e2)
         
         e3 = self.pool3(F.relu(self.enc_conv3(e2)))
-        e3 = self.dropout_conv(e3) if dropout_conv
+        e3 = self.dropout(e3)
 
         # bottleneck
         b = F.relu(self.bottleneck_conv(e3))

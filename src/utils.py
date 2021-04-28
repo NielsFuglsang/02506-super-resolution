@@ -1,7 +1,7 @@
 import glob
 
 import numpy as np
-#import skimage.io
+import skimage.io
 from scipy import interpolate
 
 import torch

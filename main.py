@@ -44,7 +44,7 @@ for i, im in enumerate(ims_gt):
     if train_size < i:
         interp_mse_list.append(mse(im_interp, im))
         interp_psnr_list.append(psnr(im_interp, im))
-        interp_ssim_list.append(ssim(im_interp, im))
+        interp_ssim_list.append(ssim(im_interp, im, multichannel=True))
     
 ims_ds = np.array(ims_ds)
 ims_interp = np.array(ims_interp)
@@ -144,7 +144,7 @@ unet_ssim_list = []
 for i in range(train_size, 15):
     unet_mse_list.append(mse(ims_superres[i], ims_gt[i]))
     unet_psnr_list.append(psnr(ims_superres[i], ims_gt[i]))
-    unet_ssim_list.append(ssim(ims_superres[i], ims_gt[i]))
+    unet_ssim_list.append(ssim(ims_superres[i], ims_gt[i], multichannel=True))
 
 print('Mean MSE of interpolation:', np.mean(interp_mse_list))
 print('Mean PSNR of interpolation:', np.mean(interp_psnr_list))

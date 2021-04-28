@@ -1,7 +1,7 @@
 import glob
 
 import numpy as np
-import skimage.io
+#import skimage.io
 from scipy import interpolate
 
 import torch
@@ -45,14 +45,15 @@ def down_sample(im, stride=4, is_torch=True):
 def interpolate_rgb(im, mask2d):
     """Interpolate RGB data by interpolating griddata for each channel."""
     im_interpolated = np.zeros(im.shape)
+
+    x = np.arange(0, im.shape[1])
+    y = np.arange(0, im.shape[0])
+    xx, yy = np.meshgrid(x, y)
+
+    x1 = xx[~mask2d]
+    y1 = yy[~mask2d]
     
     for ch in range(im.shape[2]):
-        x = np.arange(0, im.shape[1])
-        y = np.arange(0, im.shape[0])
-        xx, yy = np.meshgrid(x, y)
-
-        x1 = xx[~mask2d]
-        y1 = yy[~mask2d]
         new_im = im[~mask2d, ch]
 
         im_interpolated[..., ch] = interpolate.griddata((x1, y1), new_im.ravel(), 

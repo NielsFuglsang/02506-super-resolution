@@ -2,6 +2,8 @@ import glob
 
 import numpy as np
 import skimage.io
+from scipy import interpolate
+
 import torch
 import torch.nn as nn
 
@@ -13,16 +15,49 @@ def orthogonal_init(module, gain=nn.init.calculate_gain('relu')):
     return module
 
 
-def down_sample(im, stride=4):
+def down_sample(im, stride=4, is_torch=True):
     """Downsampling corresponding to reducing number of linescans in x- and y-direction."""
     mask = np.zeros(im.shape)
-    m, n, _ = im.shape
+    
+    # Handle torch and numpy different.
+    if is_torch:
+        _, m, n = im.shape
+    else:
+        m, n, _ = im.shape
+
     mask_x = np.arange(0, n, stride)
     mask_y = np.arange(0, m, stride)
-    mask[:, mask_x] = 1
-    mask[mask_y, :] = 1
+    
+    if is_torch:
+        mask[:, :, mask_x] = 1
+        mask[:, mask_y, :] = 1
         
-    return (im * mask).type(torch.float32)
+        ds = (im * mask).type(torch.float32)
+    else:
+        mask[:, mask_x] = 1
+        mask[mask_y, :] = 1
+        
+        ds = (im * mask).astype(np.float32)
+        
+    return ds, mask
+
+
+def interpolate_rgb(im, mask2d):
+    """Interpolate RGB data by interpolating griddata for each channel."""
+    im_interpolated = np.zeros(im.shape)
+    
+    for ch in range(im.shape[2]):
+        x = np.arange(0, im.shape[1])
+        y = np.arange(0, im.shape[0])
+        xx, yy = np.meshgrid(x, y)
+
+        x1 = xx[~mask2d]
+        y1 = yy[~mask2d]
+        new_im = im[~mask2d, ch]
+
+        im_interpolated[..., ch] = interpolate.griddata((x1, y1), new_im.ravel(), 
+                                                        (xx, yy), method='nearest')
+    return im_interpolated.astype(np.float32)
 
 
 def load_images(path='data/healthy_small'):

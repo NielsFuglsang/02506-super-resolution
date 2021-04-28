@@ -36,7 +36,7 @@ class MyUNet(nn.Module):
         
         self.apply(orthogonal_init)
         
-    def forward(self, x, dropout_conv=False, dropout_dense=False):
+    def forward(self, x):
         # encoder
         e0 = self.pool0(F.relu(self.enc_conv0(x)))
         e0 = self.dropout(e0)

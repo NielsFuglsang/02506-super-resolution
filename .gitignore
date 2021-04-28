@@ -133,3 +133,6 @@ dmypy.json
 
 # Virtual environment
 .venv
+
+# HPC logs
+/logs

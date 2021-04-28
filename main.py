@@ -3,6 +3,7 @@ import numpy as np
 import skimage.io
 from skimage.metrics import mean_squared_error as mse
 from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import structural_similarity as ssim
 
 import torch
 import torch.nn as nn
@@ -23,6 +24,7 @@ ims_ds = []
 ims_interp = []
 interp_mse_list = []
 interp_psnr_list = []
+interp_ssim_list = []
 
 train_size = 10
 test_size = 15-train_size
@@ -42,6 +44,7 @@ for i, im in enumerate(ims_gt):
     if train_size < i:
         interp_mse_list.append(mse(im_interp, im))
         interp_psnr_list.append(psnr(im_interp, im))
+        interp_ssim_list.append(ssim(im_interp, im))
     
 ims_ds = np.array(ims_ds)
 ims_interp = np.array(ims_interp)
@@ -64,7 +67,7 @@ unet = MyUNet()
 unet.to(device)
 
 # Train model.
-n_epochs = 50
+n_epochs = 100
 val_size = 5
 
 mse_loss = nn.MSELoss()
@@ -89,15 +92,6 @@ for epoch in range(n_epochs):
         unet.eval()
         
         with torch.no_grad():
-            """
-            train_pred = unet(Xtrain.to(device))
-            train_loss = mse_loss(train_pred, ytrain.to(device))
-            train_losses.append(train_loss)
-
-            test_pred = unet(Xtest.to(device))
-            test_loss = mse_loss(test_pred, ytest.to(device))
-            test_losses.append(test_loss)
-            """
             train_loss = []
             for X, y in zip(Xtrain, ytrain):
                 X = X.to(device)
@@ -126,7 +120,8 @@ ax.plot(np.arange(0, n_epochs, val_size), test_losses, linewidth=3, label='test 
 ax.set_yscale('log')
 ax.set_ylabel('MSE')
 ax.legend()
-plt.savefig('convergence.png')
+ax.set_title('Convergence')
+plt.savefig('figures/convergence.png', bbox_inches='tight')
 plt.show()
 
 
@@ -144,15 +139,19 @@ for i in range(15):
 # Get MSE and PSNR 
 unet_mse_list = []
 unet_psnr_list = []
+unet_ssim_list = []
 
 for i in range(train_size, 15):
     unet_mse_list.append(mse(ims_superres[i], ims_gt[i]))
     unet_psnr_list.append(psnr(ims_superres[i], ims_gt[i]))
+    unet_ssim_list.append(ssim(ims_superres[i], ims_gt[i]))
 
 print('Mean MSE of interpolation:', np.mean(interp_mse_list))
 print('Mean PSNR of interpolation:', np.mean(interp_psnr_list))
+print('Mean SSIM of interpolation:', np.mean(interp_ssim_list))
 print('Mean MSE of U-net:', np.mean(unet_mse_list))
-print('Mean MSE of U-net:', np.mean(unet_psnr_list))
+print('Mean PSNR of U-net:', np.mean(unet_psnr_list))
+print('Mean SSIM of U-net:', np.mean(unet_ssim_list))
 
 
 
@@ -168,5 +167,5 @@ axes[1].imshow(ims_interp[idx])
 axes[1].set_title('Interpolated')
 axes[2].imshow(ims_superres[idx])
 axes[2].set_title('U-Net')
-plt.savefig('super-duper{}.png'.format(idx))
+plt.savefig('figures/super-duper{}.png'.format(idx), bbox_inches='tight')
 plt.show()
